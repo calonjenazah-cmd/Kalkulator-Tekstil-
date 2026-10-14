@@ -21,19 +21,19 @@ jobs:
           plugins { id 'com.android.application' version '8.5.0' }
           android {
             namespace 'id.qc'; compileSdk 34
-            defaultConfig { applicationId 'id.qc.textile'; minSdk 24; targetSdk 34; versionCode 3; versionName '2.0' }
+            defaultConfig { applicationId 'id.qc.textile'; minSdk 24; targetSdk 34; versionCode 4; versionName '2.1' }
           }
           EOF
           cat << 'EOF' > src/main/res/drawable/ic_launcher.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-            <path android:fillColor="#1E4631" android:pathData="M0,0h108v108h-108z"/>
-            <path android:fillColor="#FFFFFF" android:pathData="M34,22h40v8h-40zM38,33h32l-4,40h-24zM34,76h40v8h-40z"/>
+            <path android:fillColor="#0B1F17" android:pathData="M0,0h108v108h-108z"/>
+            <path android:fillColor="#00FF88" android:pathData="M34,22h40v8h-40zM38,33h32l-4,40h-24zM34,76h40v8h-40z"/>
             <path android:fillColor="#88D4AB" android:pathData="M36,42h36v5h-36zM37,51h34v5h-34zM38,60h32v5h-32z"/>
           </vector>
           EOF
           cat << 'EOF' > src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <application android:label="Kalkulator Spinning QC" android:icon="@drawable/ic_launcher" android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+            <application android:label="Spinning QC Pro" android:icon="@drawable/ic_launcher" android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
               <activity android:name=".MainActivity" android:exported="true">
                 <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
               </activity>
@@ -54,30 +54,36 @@ jobs:
           cat << 'EOF' > src/main/assets/index.html
           <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
           <style>
-          body{font-family:sans-serif;margin:0;background:#F2F5F3;color:#222;padding-bottom:75px}
-          header{background:#1E4631;color:#fff;padding:12px 15px;font-weight:bold;font-size:16px}
-          header small{display:block;font-weight:normal;font-size:11px;opacity:.85;margin-top:2px}
-          .card{background:#fff;margin:10px;padding:12px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-          h3{margin:0 0 8px;color:#1E4631;font-size:14px;border-bottom:1px solid #e0e8e3;padding-bottom:5px}
-          label{display:block;font-size:11px;margin-top:7px;color:#555;font-weight:bold}
-          .g2{display:flex;gap:8px}.g2>div{flex:1}
-          input,select{width:100%;padding:8px;margin-top:2px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;font-size:14px;background:#fff}
-          .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-          .row b{color:#1E4631;font-size:14px}
-          nav{position:fixed;bottom:0;width:100%;background:#fff;display:flex;border-top:1px solid #ccc}
-          nav button{flex:1;padding:7px 2px;border:none;background:none;font-size:11px;font-weight:bold;color:#666}
-          nav button i{display:block;font-style:normal;font-size:16px;margin-bottom:2px}
-          nav button.on{color:#1E4631;border-top:3px solid #1E4631;background:#f4f9f6}
-          .tab{display:none}.tab.on{display:block}
+          :root{--bg:#07110D;--card:#10261C;--border:#1E4834;--acc:#00FF88;--txt:#E2F4ED;--muted:#8DA89C}
+          body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;background:var(--bg);color:var(--txt);padding-bottom:85px}
+          header{background:linear-gradient(135deg,#0B1F17,#163829);color:#fff;padding:16px;border-bottom:1px solid var(--border);box-shadow:0 4px 20px rgba(0,255,136,0.05)}
+          header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.3px;color:var(--acc)}
+          header small{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:3px}
+          .card{background:var(--card);margin:12px;padding:15px;border-radius:14px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .2s ease}
+          h3{margin:0 0 12px;color:var(--acc);font-size:13px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:6px}
+          label{display:block;font-size:11px;margin-top:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+          .g2{display:flex;gap:10px}.g2>div{flex:1}
+          input,select{width:100%;padding:10px 12px;margin-top:4px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box;font-size:14px;background:#07110D;color:#fff;outline:none;transition:border-color .2s}
+          input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 8px rgba(0,255,136,.2)}
+          .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,72,52,.4);font-size:13px}
+          .row span{color:var(--muted)}
+          .row b{color:var(--acc);font-size:14px;font-weight:700}
+          nav{position:fixed;bottom:0;width:100%;background:rgba(7,17,13,.92);backdrop-filter:blur(10px);display:flex;border-top:1px solid var(--border);padding:4px 0}
+          nav button{flex:1;padding:8px 2px;border:none;background:none;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+          nav button i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
+          nav button.on{color:var(--acc);text-shadow:0 0 10px rgba(0,255,136,.4)}
+          .tab{display:none;animation:fadeIn .3s cubic-bezier(.16,1,.3,1)}
+          .tab.on{display:block}
+          @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
           </style></head><body>
-          <header>🧵 Kalkulator Spinning & QC<small>Sliver (1y & 6y) • Roving (12y) • Benang RSF • Benang OE</small></header>
-          <div id="t0" class="tab on"><div class="card"><h3>1. Sliver (Konversi & Produksi)</h3>
+          <header><h1>⚡ SPINNING QC PRO</h1><small>Sliver • Roving • Benang RSF • Benang OE</small></header>
+          <div id="t0" class="tab on"><div class="card"><h3>1. Sliver (Carding / Drawing)</h3>
           <div class="g2"><div><label>Input Sliver</label><input id="sVal" type="number" value="70" oninput="c()"></div>
           <div><label>Satuan</label><select id="sUn" onchange="c()"><option value="g1">Grains / 1 yd</option><option value="g6">Grains / 6 yds</option><option value="m6">Gram / 6 yds</option><option value="ne">Ne Sliver</option><option value="kt">kTex (g/m)</option></select></div></div>
           <div class="g2"><div><label>Speed (m/menit)</label><input id="sSpd" type="number" value="600" oninput="c()"></div>
           <div><label>Efisiensi (%)</label><input id="sEff" type="number" value="85" oninput="c()"></div></div>
           <label>Jumlah Delivery / Mesin</label><input id="sDel" type="number" value="1" oninput="c()"></div><div class="card" id="sOut"></div></div>
-          <div id="t1" class="tab"><div class="card"><h3>2. Roving (12 Yards, Twist & Produksi)</h3>
+          <div id="t1" class="tab"><div class="card"><h3>2. Roving (12 Yards & Produksi)</h3>
           <div class="g2"><div><label>Input Roving</label><input id="rVal" type="number" value="100" oninput="c()"></div>
           <div><label>Satuan</label><select id="rUn" onchange="c()"><option value="g12">Grains / 12 yds</option><option value="m12">Gram / 12 yds</option><option value="ne">Ne Roving</option><option value="tx">Tex</option></select></div></div>
           <div class="g2"><div><label>Satuan Twist</label><select id="rTu" onchange="c()"><option>TPI</option><option>TPM</option></select></div>
@@ -106,24 +112,26 @@ jobs:
           <div><label>Jumlah Rotor</label><input id="oSp" type="number" value="180" oninput="c()"></div></div></div><div class="card" id="oOut"></div></div>
           <nav><button class="on" onclick="sw(0)"><i>🛢️</i>Sliver</button><button onclick="sw(1)"><i>🥖</i>Roving</button><button onclick="sw(2)"><i>🧵</i>RSF</button><button onclick="sw(3)"><i>⚙️</i>OE</button></nav>
           <script>
-          function sw(n){document.querySelectorAll('.tab').forEach((e,i)=>e.className=i==n?'tab on':'tab');document.querySelectorAll('nav button').forEach((e,i)=>e.className=i==n?'on':'');}
+          function vib(){if(navigator.vibrate)navigator.vibrate(15);}
+          function sw(n){vib();document.querySelectorAll('.tab').forEach((e,i)=>e.className=i==n?'tab on':'tab');document.querySelectorAll('nav button').forEach((e,i)=>e.className=i==n?'on':'');}
           function r(k,v){return `<div class="row"><span>${k}</span><b>${v}</b></div>`;}
           function yCalc(v,u,tu,tw,rpm,ef,inNe,sp,lbl){
             let ne=u=='ne'?v:u=='g120'&&v?1000/v:u=='m120'&&v?64.7989/v:u=='tx'&&v?590.541/v:u=='nm'?v*.59054:0;
             let g120=ne?1000/ne:0,m120=g120*.0647989,tx=ne?590.541/ne:0,nm=ne*1.69336,dn=tx*9;
             let tpi=tu=='TPI'?tw:tw/39.3701,tpm=tu=='TPM'?tw:tw*39.3701,tm=ne>0?tpi/Math.sqrt(ne):0;
             let mpm=tpm?rpm/tpm:0,dr=inNe?ne/inNe:0,gps=mpm*480*(ef/100)*tx/1000,kgs=(gps*sp)/1000;
-            return r('Ne1 / Nm',ne.toFixed(2)+' / '+nm.toFixed(2))+r('Grains / 120 yds',g120.toFixed(2)+' grn')+r('Gram / 120 yds (Lea)',m120.toFixed(2)+' g')+r('Tex / Denier',tx.toFixed(1)+' / '+dn.toFixed(0))+r('TPI / TPM (TM)',tpi.toFixed(2)+' / '+tpm.toFixed(0)+' ('+tm.toFixed(2)+')')+r('Draft Mesin',dr.toFixed(2))+r('Delivery (m/menit)',mpm.toFixed(2))+r('Gram/'+lbl+'/Shift (8J)',gps.toFixed(1)+' g')+r('Kg/Mesin/Shift (8J)',kgs.toFixed(2)+' kg')+r('Kg/Mesin/24 Jam',(kgs*3).toFixed(2)+' kg')+r('Bales/Hari @181.44kg',((kgs*3)/181.437).toFixed(3));
+            return r('Ne1 / Nm',ne.toFixed(2)+' / '+nm.toFixed(2))+r('Grains / 120 yds',g120.toFixed(2)+' grn')+r('Gram / 120 yds',m120.toFixed(2)+' g')+r('Tex / Denier',tx.toFixed(1)+' / '+dn.toFixed(0))+r('TPI / TPM (TM)',tpi.toFixed(2)+' / '+tpm.toFixed(0)+' ('+tm.toFixed(2)+')')+r('Draft Mesin',dr.toFixed(2))+r('Delivery (m/menit)',mpm.toFixed(2))+r('Gram/'+lbl+'/Shift (8J)',gps.toFixed(1)+' g')+r('Kg/Mesin/Shift (8J)',kgs.toFixed(2)+' kg')+r('Kg/Mesin/24 Jam',(kgs*3).toFixed(2)+' kg')+r('Bales/Hari @181.44kg',((kgs*3)/181.437).toFixed(3));
           }
           function c(){
+            vib();
             let sv=+sVal.value||0,su=sUn.value,sne=su=='ne'?sv:su=='g1'&&sv?8.33333/sv:su=='g6'&&sv?50/sv:su=='m6'&&sv?3.23995/sv:su=='kt'&&sv?.590541/sv:0;
             let sg1=sne?8.33333/sne:0,sg6=sg1*6,sm6=sg6*.0647989,skt=sne?.590541/sne:0;
-            let sMpm=+sSpd.value||0,sEf=(+sEff.value||0)/100,sDl=+sDel.value||1,sKgh=(sMpm*60*sEf*skt*sDl)/1000,sKgs=sKgh*8;
+            let sMpm=+sSpd.value||0,sEff=(+sEff.value||0)/100,sDl=+sDel.value||1,sKgh=(sMpm*60*sEff*skt*sDl)/1000,sKgs=sKgh*8;
             sOut.innerHTML=r('Ne Sliver',sne.toFixed(4))+r('Grains / 1 Yard',sg1.toFixed(2)+' grn')+r('Grains / 6 Yards',sg6.toFixed(2)+' grn')+r('Gram / 6 Yards',sm6.toFixed(2)+' g')+r('kTex (Gram/Meter)',skt.toFixed(3))+r('Produksi Kg / Jam',sKgh.toFixed(2)+' kg')+r('Kg / Shift (8 Jam)',sKgs.toFixed(2)+' kg')+r('Kg / Hari (24 Jam)',(sKgs*3).toFixed(2)+' kg')+r('Bales / Hari',((sKgs*3)/181.437).toFixed(2));
             let rv=+rVal.value||0,ru=rUn.value,rne=ru=='ne'?rv:ru=='g12'&&rv?100/rv:ru=='m12'&&rv?6.47989/rv:ru=='tx'&&rv?590.541/rv:0;
             let rg12=rne?100/rne:0,rm12=rg12*.0647989,rtx=rne?590.541/rne:0,rtu=rTu.value,rtw=+rTw.value||0,rtpi=rtu=='TPI'?rtw:rtw/39.3701,rtpm=rtu=='TPM'?rtw:rtw*39.3701,rtm=rne>0?rtpi/Math.sqrt(rne):0;
             let rMpm=rtpm?(+rRpm.value||0)/rtpm:0,rEf=(+rEff.value||0)/100,rDr=(+rSin.value||0)?rne/(+rSin.value):0,rGps=rMpm*480*rEf*rtx/1000,rKgs=(rGps*(+rSp.value||0))/1000;
-            rOut.innerHTML=r('Ne Roving',rne.toFixed(3))+r('Grains / 12 Yards',rg12.toFixed(2)+' grn')+r('Gram / 12 Yards',rm12.toFixed(2)+' g')+r('Tex Roving',rtx.toFixed(1))+r('TPI / TPM (TM)',rtpi.toFixed(2)+' / '+rtpm.toFixed(1)+' ('+rtm.toFixed(2)+')')+r('Draft Roving',rDr.toFixed(2))+r('Delivery (m/menit)',rMpm.toFixed(2))+r('Gram/Spindel/8 Jam',rGps.toFixed(1)+' g')+r('Kg/Mesin/Shift (8J)',rKgs.toFixed(2)+' kg')+r('Kg/Mesin/24 Jam',(rKgs*3).toFixed(2)+' kg');
+            rOut.innerHTML=r('Ne Roving',rne.toFixed(3))+r('Grains / 12 Yards',rg12.toFixed(2)+' grn')+r('Gram / 12 Yards',rm12.toFixed(2)+' g')+r('Tex Roving',rtx.toFixed(1))+r('TPI / TPM (TM)',rtpi.toFixed(2)+' / '+rtpm.toFixed(1)+' ('+rtm.toFixed(2)+')')+r('Draft Roving',rDr.toFixed(2))+r('Delivery (m/menit)',rMpm.toFixed(2))+r('Gram/Spindel/8 Jam',rGps.toFixed(1)+' g')+r('Kg/Mesin/Shift (8J)',rKgs.toFixed(2)+' kg')+r('Kg/Mesin/24 Jam',(rKgs*3).toFixed(2)+' kg')+r('Bales/Hari @181.44kg',((rKgs*3)/181.437).toFixed(3));
             fOut.innerHTML=yCalc(+fVal.value||0,fUn.value,fTu.value,+fTw.value||0,+fRpm.value||0,+fEff.value||0,+fRin.value||0,+fSp.value||0,'Spindel');
             oOut.innerHTML=yCalc(+oVal.value||0,oUn.value,oTu.value,+oTw.value||0,+oRpm.value||0,+oEff.value||0,+oSin.value||0,+oSp.value||0,'Rotor');
           }
@@ -133,6 +141,6 @@ jobs:
           gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: Kalkulator-Spinning-Lengkap-APK
+          name: Spinning-QC-Pro-APK
           path: build/outputs/apk/debug/*.apk
           
