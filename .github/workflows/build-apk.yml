@@ -12,10 +12,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Buat Struktur Proyek & Kode Aplikasi Otomatis
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle 8.7
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: Buat Proyek & Compile APK
         run: |
-          mkdir -p app/src/main/java/id/kaluma/textilecalc
-          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/java/id/kaluma/textilecalc app/src/main/res/values
 
           cat << 'EOF' > gradle.properties
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -26,18 +39,11 @@ jobs:
 
           cat << 'EOF' > settings.gradle.kts
           pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
           }
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
+              repositories { google(); mavenCentral() }
           }
           rootProject.name = "KalkulatorTekstil"
           include(":app")
@@ -55,52 +61,24 @@ jobs:
               id("com.android.application")
               id("org.jetbrains.kotlin.android")
           }
-
           android {
               namespace = "id.kaluma.textilecalc"
               compileSdk = 34
-
               defaultConfig {
                   applicationId = "id.kaluma.textilecalc"
                   minSdk = 24
                   targetSdk = 34
                   versionCode = 1
                   versionName = "1.0.0"
-
-                  vectorDrawables {
-                      useSupportLibrary = true
-                  }
-              }
-
-              buildTypes {
-                  release {
-                      isMinifyEnabled = false
-                      proguardFiles(
-                          getDefaultProguardFile("proguard-android-optimize.txt"),
-                          "proguard-rules.pro"
-                      )
-                  }
               }
               compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-              buildFeatures {
-                  compose = true
-              }
-              composeOptions {
-                  kotlinCompilerExtensionVersion = "1.5.14"
-              }
-              packaging {
-                  resources {
-                      excludes += "/META-INF/{AL2.0,LGPL2.1}"
-                  }
-              }
+              kotlinOptions { jvmTarget = "17" }
+              buildFeatures { compose = true }
+              composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
           }
-
           dependencies {
               val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
               implementation(composeBom)
@@ -109,7 +87,6 @@ jobs:
               implementation("androidx.activity:activity-compose:1.9.0")
               implementation("androidx.compose.ui:ui")
               implementation("androidx.compose.ui:ui-graphics")
-              implementation("androidx.compose.ui:ui-tooling-preview")
               implementation("androidx.compose.material3:material3")
               implementation("androidx.compose.material:material-icons-extended")
           }
@@ -118,7 +95,6 @@ jobs:
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
               <application
                   android:allowBackup="true"
                   android:label="Kalkulator Tekstil &amp; QC"
@@ -134,17 +110,15 @@ jobs:
                       </intent-filter>
                   </activity>
               </application>
-
           </manifest>
           EOF
 
           cat << 'EOF' > app/src/main/res/values/strings.xml
-          <resources>
-              <string name="app_name">Kalkulator Tekstil &amp; QC</string>
-          </resources>
+          <resources><string name="app_name">Kalkulator Tekstil &amp; QC</string></resources>
           EOF
 
           cat << 'EOF' > app/src/main/java/id/kaluma/textilecalc/MainActivity.kt
+          @file:OptIn(ExperimentalMaterial3Api::class)
           package id.kaluma.textilecalc
 
           import android.os.Bundle
@@ -156,10 +130,7 @@ jobs:
           import androidx.compose.foundation.text.KeyboardOptions
           import androidx.compose.foundation.verticalScroll
           import androidx.compose.material.icons.Icons
-          import androidx.compose.material.icons.filled.Calculate
-          import androidx.compose.material.icons.filled.PrecisionManufacturing
-          import androidx.compose.material.icons.filled.Scale
-          import androidx.compose.material.icons.filled.SwapHoriz
+          import androidx.compose.material.icons.filled.*
           import androidx.compose.material3.*
           import androidx.compose.runtime.*
           import androidx.compose.ui.Alignment
@@ -176,11 +147,17 @@ jobs:
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   setContent {
-                      TextileCalculatorTheme {
-                          Surface(
-                              modifier = Modifier.fillMaxSize(),
-                              color = MaterialTheme.colorScheme.background
-                          ) {
+                      val cs = lightColorScheme(
+                          primary = Color(0xFF2E5A44),
+                          onPrimary = Color.White,
+                          primaryContainer = Color(0xFFD8ECE0),
+                          onPrimaryContainer = Color(0xFF0F2E1E),
+                          secondary = Color(0xFF4A6356),
+                          background = Color(0xFFF6F8F6),
+                          surface = Color.White
+                      )
+                      MaterialTheme(colorScheme = cs) {
+                          Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                               MainScreen()
                           }
                       }
@@ -189,101 +166,47 @@ jobs:
           }
 
           @Composable
-          fun TextileCalculatorTheme(content: @Composable () -> Unit) {
-              val colorScheme = lightColorScheme(
-                  primary = Color(0xFF2E5A44),
-                  onPrimary = Color.White,
-                  primaryContainer = Color(0xFFD8ECE0),
-                  onPrimaryContainer = Color(0xFF0F2E1E),
-                  secondary = Color(0xFF4A6356),
-                  background = Color(0xFFF6F8F6),
-                  surface = Color.White
-              )
-              MaterialTheme(colorScheme = colorScheme, content = content)
-          }
-
-          @OptIn(ExperimentalMaterial3Api::class)
-          @Composable
           fun MainScreen() {
-              var selectedTab by remember { mutableIntStateOf(0) }
-
+              var tab by remember { mutableIntStateOf(0) }
               Scaffold(
                   topBar = {
                       TopAppBar(
                           title = {
                               Column {
-                                  Text(
-                                      text = "Kalkulator Tekstil & Spinning QC",
-                                      fontWeight = FontWeight.Bold,
-                                      fontSize = 18.sp
-                                  )
-                                  Text(
-                                      text = "Konversi Benang • Twist & Draft • Produksi • Penimbangan",
-                                      fontSize = 11.sp,
-                                      color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
-                                  )
+                                  Text("Kalkulator Tekstil & Spinning QC", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                  Text("Konversi • Twist & Draft • Produksi • Timbang QC", fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
                               }
                           },
-                          colors = TopAppBarDefaults.topAppBarColors(
-                              containerColor = MaterialTheme.colorScheme.primary,
-                              titleContentColor = MaterialTheme.colorScheme.onPrimary
-                          )
+                          colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary, titleContentColor = Color.White)
                       )
                   },
                   bottomBar = {
                       NavigationBar {
-                          NavigationBarItem(
-                              selected = selectedTab == 0,
-                              onClick = { selectedTab = 0 },
-                              icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null) },
-                              label = { Text("Konversi") }
-                          )
-                          NavigationBarItem(
-                              selected = selectedTab == 1,
-                              onClick = { selectedTab = 1 },
-                              icon = { Icon(Icons.Default.Calculate, contentDescription = null) },
-                              label = { Text("Twist & Draft") }
-                          )
-                          NavigationBarItem(
-                              selected = selectedTab == 2,
-                              onClick = { selectedTab = 2 },
-                              icon = { Icon(Icons.Default.PrecisionManufacturing, contentDescription = null) },
-                              label = { Text("Produksi") }
-                          )
-                          NavigationBarItem(
-                              selected = selectedTab == 3,
-                              onClick = { selectedTab = 3 },
-                              icon = { Icon(Icons.Default.Scale, contentDescription = null) },
-                              label = { Text("Timbang QC") }
-                          )
+                          NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.SwapHoriz, null) }, label = { Text("Konversi") })
+                          NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.Default.Calculate, null) }, label = { Text("Twist/Draft") })
+                          NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.PrecisionManufacturing, null) }, label = { Text("Produksi") })
+                          NavigationBarItem(tab == 3, { tab = 3 }, { Icon(Icons.Default.Scale, null) }, label = { Text("Timbang QC") })
                       }
                   }
-              ) { innerPadding ->
-                  Box(
-                      modifier = Modifier
-                          .padding(innerPadding)
-                          .fillMaxSize()
-                          .padding(16.dp)
-                  ) {
-                      when (selectedTab) {
-                          0 -> YarnCountConverterTab()
-                          1 -> TwistAndDraftTab()
-                          2 -> SpinPlanProductionTab()
+              ) { p ->
+                  Box(Modifier.padding(p).fillMaxSize().padding(16.dp)) {
+                      when (tab) {
+                          0 -> YarnCountTab()
+                          1 -> TwistDraftTab()
+                          2 -> ProductionTab()
                           3 -> QcWeighingTab()
                       }
                   }
               }
           }
 
-          @OptIn(ExperimentalMaterial3Api::class)
           @Composable
-          fun YarnCountConverterTab() {
-              var inputVal by remember { mutableStateOf("30") }
-              var selectedUnit by remember { mutableStateOf("Ne1") }
+          fun YarnCountTab() {
+              var inp by remember { mutableStateOf("30") }
+              var unit by remember { mutableStateOf("Ne1") }
               val units = listOf("Ne1", "Nm", "Tex", "Denier", "Grains/120yds")
-
-              val v = inputVal.toDoubleOrNull() ?: 0.0
-              val ne1 = when (selectedUnit) {
+              val v = inp.toDoubleOrNull() ?: 0.0
+              val ne1 = when (unit) {
                   "Ne1" -> v
                   "Nm" -> v * 0.590541
                   "Tex" -> if (v > 0) 590.541 / v else 0.0
@@ -291,162 +214,19 @@ jobs:
                   "Grains/120yds" -> if (v > 0) 1000.0 / v else 0.0
                   else -> 0.0
               }
-
-              val nm = ne1 * 1.69336
-              val tex = if (ne1 > 0) 590.541 / ne1 else 0.0
-              val denier = if (ne1 > 0) 5314.87 / ne1 else 0.0
-              val grains120 = if (ne1 > 0) 1000.0 / ne1 else 0.0
-
-              Column(
-                  modifier = Modifier
-                      .fillMaxSize()
-                      .verticalScroll(rememberScrollState()),
-                  verticalArrangement = Arrangement.spacedBy(12.dp)
-              ) {
-                  SectionCard(title = "Konversi Nomor Benang (Indirect & Direct)") {
-                      OutlinedTextField(
-                          value = inputVal,
-                          onValueChange = { inputVal = it },
-                          label = { Text("Masukkan Nilai Nomor Benang") },
-                          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                          modifier = Modifier.fillMaxWidth(),
-                          singleLine = true
-                      )
-
-                      Spacer(modifier = Modifier.height(8.dp))
-                      Text("Pilih Satuan Input:", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                      Spacer(modifier = Modifier.height(4.dp))
-
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.spacedBy(6.dp)
-                      ) {
-                          units.take(3).forEach { unit ->
-                              FilterChip(
-                                  selected = selectedUnit == unit,
-                                  onClick = { selectedUnit = unit },
-                                  label = { Text(unit) },
-                                  modifier = Modifier.weight(1f)
-                              )
-                          }
+              val grains = if (ne1 > 0) 1000.0 / ne1 else 0.0
+              Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                  SectionCard("Konversi Nomor Benang") {
+                      Inp(inp, "Nilai Nomor Benang") { inp = it }
+                      Spacer(Modifier.height(8.dp))
+                      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                          units.take(3).forEach { u -> FilterChip(unit == u, { unit = u }, { Text(u) }, Modifier.weight(1f)) }
                       }
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.spacedBy(6.dp)
-                      ) {
-                          units.drop(3).forEach { unit ->
-                              FilterChip(
-                                  selected = selectedUnit == unit,
-                                  onClick = { selectedUnit = unit },
-                                  label = { Text(unit) },
-                                  modifier = Modifier.weight(1f)
-                              )
-                          }
+                      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                          units.drop(3).forEach { u -> FilterChip(unit == u, { unit = u }, { Text(u) }, Modifier.weight(1f)) }
                       }
                   }
-
-                  SectionCard(title = "Hasil Konversi Akurat") {
-                      ResultRow("Ne1 (English Cotton Count)", fmt(ne1))
-                      HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                      ResultRow("Nm (Metric Count)", fmt(nm))
-                      HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                      ResultRow("Tex (g / 1.000 m)", fmt(tex))
-                      HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                      ResultRow("Denier / Td (g / 9.000 m)", fmt(denier))
-                      HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                      ResultRow("Berat Lea (Grains / 120 yds)", fmt(grains120))
-                      HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
-                      ResultRow("Berat Lea (Gram / 120 yds)", fmt(grains120 * 0.0647989))
-                  }
-              }
-          }
-
-          @Composable
-          fun TwistAndDraftTab() {
-              var neInput by remember { mutableStateOf("30") }
-              var tmInput by remember { mutableStateOf("3.8") }
-
-              var neInDraft by remember { mutableStateOf("0.85") }
-              var neOutDraft by remember { mutableStateOf("30") }
-              var doubling by remember { mutableStateOf("1") }
-              var wastePct by remember { mutableStateOf("0") }
-
-              val ne = neInput.toDoubleOrNull() ?: 0.0
-              val tm = tmInput.toDoubleOrNull() ?: 0.0
-              val tpi = if (ne > 0 && tm > 0) tm * sqrt(ne) else 0.0
-              val tpm = tpi * 39.3701
-              val alphaM = tm * 30.25
-
-              val nIn = neInDraft.toDoubleOrNull() ?: 0.0
-              val nOut = neOutDraft.toDoubleOrNull() ?: 0.0
-              val dbl = doubling.toDoubleOrNull() ?: 1.0
-              val wst = wastePct.toDoubleOrNull() ?: 0.0
-              val actualDraft = if (nIn > 0) (nOut * dbl) / nIn else 0.0
-              val mechDraft = if (nIn > 0 && wst < 100.0) (nOut * dbl) / (nIn * (1.0 - wst / 100.0)) else 0.0
-
-              Column(
-                  modifier = Modifier
-                      .fillMaxSize()
-                      .verticalScroll(rememberScrollState()),
-                  verticalArrangement = Arrangement.spacedBy(12.dp)
-              ) {
-                  SectionCard(title = "Kalkulator Twist (TPI, TPM & Alpha Metric)") {
-                      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                          OutlinedTextField(
-                              value = neInput,
-                              onValueChange = { neInput = it },
-                              label = { Text("Nomor Benang (Ne1)") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                              modifier = Modifier.weight(1f),
-                              singleLine = true
-                          )
-                          OutlinedTextField(
-                              value = tmInput,
-                              onValueChange = { tmInput = it },
-                              label = { Text("Twist Multiplier (TM)") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                              modifier = Modifier.weight(1f),
-                              singleLine = true
-                          )
-                      }
-                      Spacer(modifier = Modifier.height(12.dp))
-                      ResultRow("TPI (Twist Per Inch)", fmt(tpi))
-                      ResultRow("TPM (Twist Per Meter)", fmt(tpm))
-                      ResultRow("Alpha Metric (αm)", fmt(alphaM))
-                  }
-
-                  SectionCard(title = "Kalkulator Draft & Doubling") {
-                      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                          OutlinedTextField(
-                              value = neInDraft,
-                              onValueChange = { neInDraft = it },
-                              label = { Text("Ne Input (Sliver/Roving)") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                              modifier = Modifier.weight(1f),
-                              singleLine = true
-                          )
-                          OutlinedTextField(
-                              value = neOutDraft,
-                              onValueChange = { neOutDraft = it },
-                              label = { Text("Ne Output") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                              modifier = Modifier.weight(1f),
-                              singleLine = true
-                          )
-                      }
-                      Spacer(modifier = Modifier.height(8.dp))
-                      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                          OutlinedTextField(
-                              value = doubling,
-                              onValueChange = { doubling = it },
-                              label = { Text("Rangkap / Doubling") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                              modifier = Modifier.weight(1f),
-                              singleLine = true
-                          )
-                          OutlinedTextField(
-                              value = wastePct,
-                              onValueChange = { wastePct = it },
-                              label = { Text("Waste (%)") },
-                              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-      
+                  SectionCard("Hasil Konversi") {
+                      ResultRow("Ne1 (English Cotton)", fmt(ne1))
+                      ResultRow("Nm (Metric Count)", fmt(ne1 * 1.69336))
+                      ResultRow("Tex (g / 1.000 m)", fmt(if (ne1 > 0) 590.541 / ne1 else 
