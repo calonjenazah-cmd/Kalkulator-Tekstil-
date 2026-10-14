@@ -1,229 +1,120 @@
-name: Build Android APK Otomatis
-
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
-
+name: Build APK
+on: [push, workflow_dispatch]
 jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Setup Gradle 8.7
-        uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.7'
-
       - name: Buat Proyek & Compile APK
         run: |
-          mkdir -p app/src/main/java/id/kaluma/textilecalc app/src/main/res/values
-
-          cat << 'EOF' > gradle.properties
-          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-          android.useAndroidX=true
-          kotlin.code.style=official
-          android.nonTransitiveRClass=true
+          mkdir -p src/main/java/id/qc src/main/assets
+          cat << 'EOF' > settings.gradle
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = 'KalkulatorTekstilQC'
           EOF
-
-          cat << 'EOF' > settings.gradle.kts
-          pluginManagement {
-              repositories { google(); mavenCentral(); gradlePluginPortal() }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories { google(); mavenCentral() }
-          }
-          rootProject.name = "KalkulatorTekstil"
-          include(":app")
-          EOF
-
-          cat << 'EOF' > build.gradle.kts
-          plugins {
-              id("com.android.application") version "8.5.0" apply false
-              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
-          }
-          EOF
-
-          cat << 'EOF' > app/build.gradle.kts
-          plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-          }
+          cat << 'EOF' > build.gradle
+          plugins { id 'com.android.application' version '8.5.0' }
           android {
-              namespace = "id.kaluma.textilecalc"
-              compileSdk = 34
-              defaultConfig {
-                  applicationId = "id.kaluma.textilecalc"
-                  minSdk = 24
-                  targetSdk = 34
-                  versionCode = 1
-                  versionName = "1.0.0"
-              }
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-              kotlinOptions { jvmTarget = "17" }
-              buildFeatures { compose = true }
-              composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
-          }
-          dependencies {
-              val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
-              implementation(composeBom)
-              implementation("androidx.core:core-ktx:1.13.1")
-              implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
-              implementation("androidx.activity:activity-compose:1.9.0")
-              implementation("androidx.compose.ui:ui")
-              implementation("androidx.compose.ui:ui-graphics")
-              implementation("androidx.compose.material3:material3")
-              implementation("androidx.compose.material:material-icons-extended")
+            namespace 'id.qc'
+            compileSdk 34
+            defaultConfig { applicationId 'id.qc.textile'; minSdk 24; targetSdk 34; versionCode 1; versionName '1.0' }
           }
           EOF
-
-          cat << 'EOF' > app/src/main/AndroidManifest.xml
-          <?xml version="1.0" encoding="utf-8"?>
+          cat << 'EOF' > src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <application
-                  android:allowBackup="true"
-                  android:label="Kalkulator Tekstil &amp; QC"
-                  android:supportsRtl="true"
-                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true"
-                      android:windowSoftInputMode="adjustResize">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-                  </activity>
-              </application>
+            <application android:label="Kalkulator Tekstil QC" android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
           </manifest>
           EOF
-
-          cat << 'EOF' > app/src/main/res/values/strings.xml
-          <resources><string name="app_name">Kalkulator Tekstil &amp; QC</string></resources>
+          cat << 'EOF' > src/main/java/id/qc/MainActivity.java
+          package id.qc;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          public class MainActivity extends Activity {
+            protected void onCreate(Bundle b) {
+              super.onCreate(b);
+              WebView w = new WebView(this);
+              w.getSettings().setJavaScriptEnabled(true);
+              w.loadUrl("file:///android_asset/index.html");
+              setContentView(w);
+            }
+          }
           EOF
-
-          cat << 'EOF' > app/src/main/java/id/kaluma/textilecalc/MainActivity.kt
-          @file:OptIn(ExperimentalMaterial3Api::class)
-          package id.kaluma.textilecalc
-
-          import android.os.Bundle
-          import androidx.activity.ComponentActivity
-          import androidx.activity.compose.setContent
-          import androidx.compose.foundation.layout.*
-          import androidx.compose.foundation.rememberScrollState
-          import androidx.compose.foundation.shape.RoundedCornerShape
-          import androidx.compose.foundation.text.KeyboardOptions
-          import androidx.compose.foundation.verticalScroll
-          import androidx.compose.material.icons.Icons
-          import androidx.compose.material.icons.filled.*
-          import androidx.compose.material3.*
-          import androidx.compose.runtime.*
-          import androidx.compose.ui.Alignment
-          import androidx.compose.ui.Modifier
-          import androidx.compose.ui.graphics.Color
-          import androidx.compose.ui.text.font.FontWeight
-          import androidx.compose.ui.text.input.KeyboardType
-          import androidx.compose.ui.unit.dp
-          import androidx.compose.ui.unit.sp
-          import java.util.Locale
-          import kotlin.math.sqrt
-
-          class MainActivity : ComponentActivity() {
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  setContent {
-                      val cs = lightColorScheme(
-                          primary = Color(0xFF2E5A44),
-                          onPrimary = Color.White,
-                          primaryContainer = Color(0xFFD8ECE0),
-                          onPrimaryContainer = Color(0xFF0F2E1E),
-                          secondary = Color(0xFF4A6356),
-                          background = Color(0xFFF6F8F6),
-                          surface = Color.White
-                      )
-                      MaterialTheme(colorScheme = cs) {
-                          Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                              MainScreen()
-                          }
-                      }
-                  }
-              }
+          cat << 'EOF' > src/main/assets/index.html
+          <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+          <style>
+          body{font-family:sans-serif;margin:0;background:#F4F7F5;color:#222;padding-bottom:70px}
+          header{background:#2E5A44;color:#fff;padding:14px 16px;font-weight:bold;font-size:17px}
+          header small{display:block;font-weight:normal;font-size:11px;opacity:.85;margin-top:2px}
+          .card{background:#fff;margin:12px;padding:14px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+          h3{margin:0 0 10px;color:#2E5A44;font-size:14px}
+          label{display:block;font-size:12px;margin-top:8px;color:#555}
+          input,select{width:100%;padding:9px;margin-top:3px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;font-size:14px}
+          .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:13px}
+          .row b{color:#2E5A44;font-size:15px}
+          nav{position:fixed;bottom:0;width:100%;background:#fff;display:flex;border-top:1px solid #ddd}
+          nav button{flex:1;padding:12px 4px;border:none;background:none;font-size:12px;font-weight:bold;color:#666}
+          nav button.on{color:#2E5A44;border-top:3px solid #2E5A44}
+          .tab{display:none}.tab.on{display:block}
+          </style></head><body>
+          <header>Kalkulator Tekstil & Spinning QC<small>Konversi • Twist & Draft • Produksi • Timbang QC</small></header>
+          <div id="t0" class="tab on"><div class="card"><h3>Konversi Nomor Benang</h3>
+          <label>Nilai Input</label><input id="cVal" type="number" value="30" oninput="calc()">
+          <label>Satuan</label><select id="cUnit" onchange="calc()"><option>Ne1</option><option>Nm</option><option>Tex</option><option>Denier</option><option>Grains</option></select></div>
+          <div class="card" id="cOut"></div></div>
+          <div id="t1" class="tab"><div class="card"><h3>Twist & Draft</h3>
+          <label>Nomor Benang (Ne1)</label><input id="tNe" type="number" value="30" oninput="calc()">
+          <label>Twist Multiplier (TM)</label><input id="tTm" type="number" value="3.8" oninput="calc()">
+          <label>Ne Input (Sliver/Roving)</label><input id="dIn" type="number" value="0.85" oninput="calc()">
+          <label>Ne Output</label><input id="dOut" type="number" value="30" oninput="calc()">
+          <label>Doubling (Rangkap)</label><input id="dDbl" type="number" value="1" oninput="calc()"></div>
+          <div class="card" id="tOut"></div></div>
+          <div id="t2" class="tab"><div class="card"><h3>Produksi Mesin (Spin Plan)</h3>
+          <label>Speed (RPM)</label><input id="pRpm" type="number" value="18500" oninput="calc()">
+          <label>Efisiensi (%)</label><input id="pEff" type="number" value="96" oninput="calc()">
+          <label>Nomor Benang (Ne1)</label><input id="pNe" type="number" value="30" oninput="calc()">
+          <label>TM</label><input id="pTm" type="number" value="3.8" oninput="calc()">
+          <label>Jumlah Spindel / Rotor</label><input id="pSp" type="number" value="1008" oninput="calc()"></div>
+          <div class="card" id="pOut"></div></div>
+          <div id="t3" class="tab"><div class="card"><h3>Timbang Sampel QC</h3>
+          <label>Panjang Sampel (Yards: 120 / 30 / 6)</label><input id="qYds" type="number" value="120" oninput="calc()">
+          <label>Berat Timbang (Gram)</label><input id="qGr" type="number" value="2.16" oninput="calc()">
+          <label>Standar Ne1</label><input id="qStd" type="number" value="30" oninput="calc()"></div>
+          <div class="card" id="qOut"></div></div>
+          <nav><button class="on" onclick="sw(0)">Konversi</button><button onclick="sw(1)">Twist/Draft</button><button onclick="sw(2)">Produksi</button><button onclick="sw(3)">Timbang QC</button></nav>
+          <script>
+          function sw(n){document.querySelectorAll('.tab').forEach((e,i)=>e.className=i==n?'tab on':'tab');document.querySelectorAll('nav button').forEach((e,i)=>e.className=i==n?'on':'');}
+          function r(k,v){return `<div class="row"><span>${k}</span><b>${v}</b></div>`;}
+          function calc(){
+            let v=+cVal.value||0,u=cUnit.value,ne=u=='Ne1'?v:u=='Nm'?v*.59054:u=='Tex'&&v?590.54/v:u=='Denier'&&v?5314.87/v:v?1000/v:0,gr=ne?1000/ne:0;
+            cOut.innerHTML=r('Ne1',ne.toFixed(2))+r('Nm',(ne*1.6934).toFixed(2))+r('Tex',(ne?590.54/ne:0).toFixed(2))+r('Denier',(ne?5314.87/ne:0).toFixed(2))+r('Grains / 120 yds',gr.toFixed(2))+r('Gram / 120 yds',(gr*.0648).toFixed(2));
+            let tn=+tNe.value||0,tm=+tTm.value||0,tpi=tn>0?tm*Math.sqrt(tn):0,di=+dIn.value||0,do_=+dOut.value||0,db=+dDbl.value||1;
+            tOut.innerHTML=r('TPI',tpi.toFixed(2))+r('TPM',(tpi*39.37).toFixed(1))+r('Alpha Metric',(tm*30.25).toFixed(1))+r('Actual Draft',(di?(do_*db)/di:0).toFixed(2));
+            let rpm=+pRpm.value||0,ef=(+pEff.value||0)/100,pn=+pNe.value||0,pt=+pTm.value||0,sp=+pSp.value||0,ptpi=pn>0?pt*Math.sqrt(pn):0,mpm=ptpi?rpm/(ptpi*39.37):0,gps=ptpi&&pn?((rpm*480*ef)/(ptpi*30240*pn))*453.59:0,kgs=(gps*sp)/1000;
+            pOut.innerHTML=r('TPI Aktual',ptpi.toFixed(2))+r('Delivery (m/mnt)',mpm.toFixed(2))+r('Gram/Spindel/8 Jam',gps.toFixed(2))+r('Kg/Mesin/Shift',kgs.toFixed(2))+r('Kg/Mesin/24 Jam',(kgs*3).toFixed(2))+r('Bales/Hari @181.44kg',((kgs*3)/181.44).toFixed(3));
+            let y=+qYds.value||0,g=+qGr.value||0,st=+qStd.value||0,ane=g?(y*453.592)/(840*g):0,dv=st?((ane-st)/st)*100:0;
+            qOut.innerHTML=r('Nomor Aktual (Ne1)',ane.toFixed(2))+r('Berat (Grains)',(g*15.432).toFixed(2))+r('Simpangan (%)',(dv>0?'+':'')+dv.toFixed(2)+'%');
           }
-
-          @Composable
-          fun MainScreen() {
-              var tab by remember { mutableIntStateOf(0) }
-              Scaffold(
-                  topBar = {
-                      TopAppBar(
-                          title = {
-                              Column {
-                                  Text("Kalkulator Tekstil & Spinning QC", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                  Text("Konversi • Twist & Draft • Produksi • Timbang QC", fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
-                              }
-                          },
-                          colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary, titleContentColor = Color.White)
-                      )
-                  },
-                  bottomBar = {
-                      NavigationBar {
-                          NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.SwapHoriz, null) }, label = { Text("Konversi") })
-                          NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.Default.Calculate, null) }, label = { Text("Twist/Draft") })
-                          NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.PrecisionManufacturing, null) }, label = { Text("Produksi") })
-                          NavigationBarItem(tab == 3, { tab = 3 }, { Icon(Icons.Default.Scale, null) }, label = { Text("Timbang QC") })
-                      }
-                  }
-              ) { p ->
-                  Box(Modifier.padding(p).fillMaxSize().padding(16.dp)) {
-                      when (tab) {
-                          0 -> YarnCountTab()
-                          1 -> TwistDraftTab()
-                          2 -> ProductionTab()
-                          3 -> QcWeighingTab()
-                      }
-                  }
-              }
-          }
-
-          @Composable
-          fun YarnCountTab() {
-              var inp by remember { mutableStateOf("30") }
-              var unit by remember { mutableStateOf("Ne1") }
-              val units = listOf("Ne1", "Nm", "Tex", "Denier", "Grains/120yds")
-              val v = inp.toDoubleOrNull() ?: 0.0
-              val ne1 = when (unit) {
-                  "Ne1" -> v
-                  "Nm" -> v * 0.590541
-                  "Tex" -> if (v > 0) 590.541 / v else 0.0
-                  "Denier" -> if (v > 0) 5314.87 / v else 0.0
-                  "Grains/120yds" -> if (v > 0) 1000.0 / v else 0.0
-                  else -> 0.0
-              }
-              val grains = if (ne1 > 0) 1000.0 / ne1 else 0.0
-              Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                  SectionCard("Konversi Nomor Benang") {
-                      Inp(inp, "Nilai Nomor Benang") { inp = it }
-                      Spacer(Modifier.height(8.dp))
-                      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                          units.take(3).forEach { u -> FilterChip(unit == u, { unit = u }, { Text(u) }, Modifier.weight(1f)) }
-                      }
-                      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                          units.drop(3).forEach { u -> FilterChip(unit == u, { unit = u }, { Text(u) }, Modifier.weight(1f)) }
-                      }
-                  }
-                  SectionCard("Hasil Konversi") {
-                      ResultRow("Ne1 (English Cotton)", fmt(ne1))
-                      ResultRow("Nm (Metric Count)", fmt(ne1 * 1.69336))
-                      ResultRow("Tex (g / 1.000 m)", fmt(if (ne1 > 0) 590.541 / ne1 else 
+          calc();
+          </script></body></html>
+          EOF
+          gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kalkulator-Tekstil-APK
+          path: build/outputs/apk/debug/*.apk
